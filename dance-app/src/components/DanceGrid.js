@@ -2,7 +2,7 @@ import React from 'react';
 import { useState } from 'react';
 
 const DanceGrid = () => {
-    const gridSize = 15; // 15x15 grid
+    const gridSize = 15;
     const [playerPosition, setPlayerPosition] = useState({ x: 7, y: 7 });
 
     const colors = {
@@ -27,12 +27,10 @@ const DanceGrid = () => {
             padding: '10px',
             borderRadius: '5px'
         }}>
-            {/* basically creates the individual cells within the grid incl. styling*/}
             {Array.from({ length: gridSize * gridSize }, (_, index) => {
                 const x = index % gridSize;
-                const y = Math.floor(index / gridSize); // integer division
+                const y = Math.floor(index / gridSize);
         
-                // check if player is on this cell
                 const isPlayerHere = (playerPosition.x === x && playerPosition.y === y);
                 return (
                     <div
@@ -43,7 +41,7 @@ const DanceGrid = () => {
                         height: '50px',
                         backgroundColor: isPlayerHere ? colors.accent : colors.primary,  
                         border: `3px solid ${colors.secondary}`,
-                        display: 'flex',    // center the circle
+                        display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center'
                         }}
@@ -53,7 +51,7 @@ const DanceGrid = () => {
                             width: '30px',
                             height: '30px',
                             backgroundColor: colors.accent2,  
-                            borderRadius: '50%', // makes circle
+                            borderRadius: '50%',
                             border: `2px solid ${colors.primary}`  
                         }} />
                         )}
