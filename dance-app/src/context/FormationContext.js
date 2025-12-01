@@ -10,26 +10,74 @@ export const useFormations = () => {
   return context;
 };
 
+const DANCER_COLORS = [
+  { color: '#93C5FD', borderColor: '#3B82F6', textColor: '#1E40AF' },
+  { color: '#FDE047', borderColor: '#EAB308', textColor: '#713F12' },
+  { color: '#FCA5A5', borderColor: '#EF4444', textColor: '#991B1B' },
+  { color: '#FDBA74', borderColor: '#F97316', textColor: '#9A3412' },
+  { color: '#86EFAC', borderColor: '#22C55E', textColor: '#14532D' },
+  { color: '#C4B5FD', borderColor: '#8B5CF6', textColor: '#5B21B6' },
+  { color: '#F9A8D4', borderColor: '#EC4899', textColor: '#9F1239' },
+  { color: '#7DD3FC', borderColor: '#0EA5E9', textColor: '#0C4A6E' },
+  { color: '#FCD34D', borderColor: '#F59E0B', textColor: '#78350F' },
+  { color: '#A7F3D0', borderColor: '#10B981', textColor: '#064E3B' },
+];
+
+const generateInitials = (name) => {
+  if (!name || name.trim().length === 0) return '??';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+  return name.substring(0, 2).toUpperCase();
+};
+
+const generateId = (name, existingIds = []) => {
+  if (!name || name.trim().length === 0) {
+    let id = `D${Date.now()}`;
+    while (existingIds.includes(id)) {
+      id = `D${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+    }
+    return id;
+  }
+  const parts = name.trim().split(/\s+/);
+  let baseId;
+  if (parts.length >= 2) {
+    baseId = (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  } else {
+    baseId = name.substring(0, 2).toUpperCase();
+  }
+  
+  let id = baseId;
+  let counter = 1;
+  while (existingIds.includes(id)) {
+    id = `${baseId}${counter}`;
+    counter++;
+  }
+  return id;
+};
+
 export const FormationProvider = ({ children }) => {
-  const [dancers] = useState([
-    { id: 'KV', initials: 'KV', color: '#93C5FD', borderColor: '#3B82F6', textColor: '#1E40AF' },
-    { id: 'MP', initials: 'MP', color: '#FDE047', borderColor: '#EAB308', textColor: '#713F12' },
-    { id: 'AT', initials: 'AT', color: '#FCA5A5', borderColor: '#EF4444', textColor: '#991B1B' },
-    { id: 'RS', initials: 'RS', color: '#FDBA74', borderColor: '#F97316', textColor: '#9A3412' },
-    { id: 'NI', initials: 'NI', color: '#86EFAC', borderColor: '#22C55E', textColor: '#14532D' },
-  ]);
+  const initialDancers = [
+    { id: 'KV', name: 'Kevin', initials: 'KV', color: '#93C5FD', borderColor: '#3B82F6', textColor: '#1E40AF' },
+    { id: 'MP', name: 'Mary', initials: 'MP', color: '#FDE047', borderColor: '#EAB308', textColor: '#713F12' },
+    { id: 'AT', name: 'Alex', initials: 'AT', color: '#FCA5A5', borderColor: '#EF4444', textColor: '#991B1B' },
+    { id: 'RS', name: 'Ryan', initials: 'RS', color: '#FDBA74', borderColor: '#F97316', textColor: '#9A3412' },
+    { id: 'NI', name: 'Nina', initials: 'NI', color: '#86EFAC', borderColor: '#22C55E', textColor: '#14532D' },
+  ];
+
+  const initialPositions = {};
+  initialDancers.forEach(dancer => {
+    initialPositions[dancer.id] = { x: 6, y: 6 };
+  });
+
+  const [dancers, setDancers] = useState(initialDancers);
 
   const [formations, setFormations] = useState([
     {
       id: 1,
       time: 0,
-      positions: {
-        'KV': { x: 6, y: 6 },
-        'MP': { x: 6, y: 6 },
-        'AT': { x: 6, y: 6 },
-        'RS': { x: 6, y: 6 },
-        'NI': { x: 6, y: 6 },
-      }
+      positions: initialPositions,
     },
   ]);
 
@@ -37,16 +85,20 @@ export const FormationProvider = ({ children }) => {
     const newId = Math.max(...formations.map(f => f.id), 0) + 1;
     const lastFormation = formations[formations.length - 1];
     const formationTime = time !== undefined && time !== null ? time : (formations.length * 60);
+    
+    const defaultPositions = {};
+    dancers.forEach(dancer => {
+      if (lastFormation && lastFormation.positions[dancer.id]) {
+        defaultPositions[dancer.id] = lastFormation.positions[dancer.id];
+      } else {
+        defaultPositions[dancer.id] = { x: 6, y: 6 };
+      }
+    });
+    
     const newFormation = {
       id: newId,
       time: formationTime,
-      positions: lastFormation ? { ...lastFormation.positions } : {
-        'KV': { x: 6, y: 6 },
-        'MP': { x: 6, y: 6 },
-        'AT': { x: 6, y: 6 },
-        'RS': { x: 6, y: 6 },
-        'NI': { x: 6, y: 6 },
-      }
+      positions: lastFormation ? { ...lastFormation.positions } : defaultPositions
     };
     setFormations([...formations, newFormation].sort((a, b) => a.time - b.time));
     return newId;
@@ -77,6 +129,59 @@ export const FormationProvider = ({ children }) => {
     }));
   };
 
+  const addDancer = (name) => {
+    const trimmedName = name.trim();
+    if (!trimmedName) return null;
+    
+    if (dancers.length >= 20) {
+      return null;
+    }
+    
+    const existingIds = dancers.map(d => d.id);
+    const newId = generateId(trimmedName, existingIds);
+    const initials = generateInitials(trimmedName);
+    const colorIndex = dancers.length % DANCER_COLORS.length;
+    const colors = DANCER_COLORS[colorIndex];
+    
+    const newDancer = {
+      id: newId,
+      name: trimmedName,
+      initials: initials,
+      ...colors
+    };
+    
+    setDancers([...dancers, newDancer]);
+    
+    setFormations(formations.map(f => ({
+      ...f,
+      positions: {
+        ...f.positions,
+        [newId]: { x: 6, y: 6 }
+      }
+    })));
+    
+    return newDancer;
+  };
+
+  const updateDancer = (dancerId, updates) => {
+    setDancers(dancers.map(d => 
+      d.id === dancerId ? { ...d, ...updates } : d
+    ));
+  };
+
+  const removeDancer = (dancerId) => {
+    setDancers(dancers.filter(d => d.id !== dancerId));
+    
+    setFormations(formations.map(f => {
+      const newPositions = { ...f.positions };
+      delete newPositions[dancerId];
+      return {
+        ...f,
+        positions: newPositions
+      };
+    }));
+  };
+
   const value = {
     dancers,
     formations,
@@ -85,6 +190,9 @@ export const FormationProvider = ({ children }) => {
     removeFormation,
     updateFormation,
     updateDancerPosition,
+    addDancer,
+    removeDancer,
+    updateDancer,
   };
 
   return (

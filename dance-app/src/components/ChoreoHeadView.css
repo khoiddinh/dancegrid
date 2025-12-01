@@ -21,10 +21,43 @@
   border: 1px solid #e0e0e0;
 }
 
+.sidebar-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 0;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 0;
+}
+
+.sidebar-tab {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  transition: all 0.2s;
+  margin-bottom: -2px;
+}
+
+.sidebar-tab:hover {
+  color: #3b82f6;
+}
+
+.sidebar-tab.active {
+  color: #3b82f6;
+  border-bottom-color: #3b82f6;
+  font-weight: 600;
+}
+
 .sidebar-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-top: 15px;
   margin-bottom: 15px;
   padding-bottom: 10px;
   border-bottom: 2px solid #e0e0e0;
@@ -315,5 +348,177 @@
 
 .remove-formation-button:hover {
   background: #fee2e2;
+}
+
+.dancers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.add-dancer-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dancer-name-input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.dancer-name-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.add-dancer-button {
+  padding: 8px 16px;
+  border: 1px solid #3b82f6;
+  border-radius: 4px;
+  background: #3b82f6;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.add-dancer-button:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.add-dancer-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #9ca3af;
+  border-color: #9ca3af;
+}
+
+.dancer-item {
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.dancer-item:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+}
+
+.dancer-item-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.dancer-avatar-small {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 12px;
+  border: 2px solid;
+  flex-shrink: 0;
+}
+
+.dancer-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dancer-name {
+  font-weight: 500;
+  font-size: 14px;
+  color: #333;
+}
+
+.dancer-initials {
+  font-size: 12px;
+  color: #666;
+}
+
+.dancer-initials-input {
+  font-size: 12px;
+  color: #666;
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 2px 4px;
+  border-radius: 3px;
+  width: 40px;
+  text-align: center;
+  text-transform: uppercase;
+  font-family: inherit;
+}
+
+.dancer-initials-input:hover {
+  border-color: #ddd;
+  background: #f9f9f9;
+}
+
+.dancer-initials-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: white;
+  color: #333;
+}
+
+.dancer-limit-message {
+  text-align: center;
+  color: #ef4444;
+  font-size: 12px;
+  padding: 8px;
+  margin: 0 0 8px 0;
+  background: #fee2e2;
+  border-radius: 4px;
+}
+
+.dancer-delete {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.dancer-delete:hover {
+  background: #fee2e2;
+}
+
+.no-dancers {
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+  padding: 20px;
+  margin: 0;
 }
 

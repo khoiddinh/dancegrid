@@ -3,7 +3,6 @@ import { Home, User, Plus, Minus, Heart, Star } from 'lucide-react';
 
 
 const HelloStyles = () => {
-    // have all the colors here
     const colors = {
         primary: '#ffffff',
         secondary: '#cbced4',

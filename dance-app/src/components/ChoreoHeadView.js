@@ -11,7 +11,10 @@ const ChoreoHeadView = () => {
     addFormation, 
     removeFormation, 
     updateFormation,
-    updateDancerPosition 
+    updateDancerPosition,
+    addDancer,
+    removeDancer,
+    updateDancer
   } = useFormations();
   
   const [currentFormationIndex, setCurrentFormationIndex] = useState(0);
@@ -19,6 +22,9 @@ const ChoreoHeadView = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [notes, setNotes] = useState({});
   const [selectedDancerId, setSelectedDancerId] = useState(null);
+  const [sidebarTab, setSidebarTab] = useState('keyframes'); // 'keyframes' or 'dancers'
+  const [newDancerName, setNewDancerName] = useState('');
+  const [editingInitials, setEditingInitials] = useState({});
 
   const sortedFormations = [...formations].sort((a, b) => a.time - b.time); // need to make sure the formations sorted chrono
   
@@ -150,6 +156,47 @@ const ChoreoHeadView = () => {
     }
   };
 
+  const handleAddDancer = () => {
+    if (newDancerName.trim()) {
+      const result = addDancer(newDancerName.trim());
+      if (result === null) {
+        alert('Maximum of 20 dancers allowed.');
+      } else {
+        setNewDancerName('');
+      }
+    }
+  };
+
+  const handleInitialsChange = (dancerId, newInitials) => {
+    const cleaned = newInitials.toUpperCase().substring(0, 3);
+    setEditingInitials({ ...editingInitials, [dancerId]: cleaned });
+  };
+
+  const handleInitialsBlur = (dancerId) => {
+    const newInitials = editingInitials[dancerId] || '';
+    if (newInitials.trim().length >= 1) {
+      updateDancer(dancerId, { initials: newInitials.trim().substring(0, 3) });
+    }
+    const newEditing = { ...editingInitials };
+    delete newEditing[dancerId];
+    setEditingInitials(newEditing);
+  };
+
+  const handleInitialsKeyPress = (e, dancerId) => {
+    if (e.key === 'Enter') {
+      e.target.blur();
+    }
+  };
+
+  const handleRemoveDancer = (dancerId) => {
+    if (window.confirm('Are you sure you want to remove this dancer? This will remove them from all formations.')) {
+      removeDancer(dancerId);
+      if (selectedDancerId === dancerId) {
+        setSelectedDancerId(null);
+      }
+    }
+  };
+
   return (
     <div className="choreo-head-view">
       <div className="view-header">
@@ -158,63 +205,157 @@ const ChoreoHeadView = () => {
 
       <div className="main-content">
         <div className="keyframes-sidebar">
-          <div className="sidebar-header">
-            <h3>Keyframes</h3>
-            <button className="add-formation-button" onClick={handleAddFormation}>
-              + Add
+          <div className="sidebar-tabs">
+            <button
+              className={`sidebar-tab ${sidebarTab === 'keyframes' ? 'active' : ''}`}
+              onClick={() => setSidebarTab('keyframes')}
+            >
+              Keyframes
+            </button>
+            <button
+              className={`sidebar-tab ${sidebarTab === 'dancers' ? 'active' : ''}`}
+              onClick={() => setSidebarTab('dancers')}
+            >
+              Dancers
             </button>
           </div>
-          <div className="keyframes-list">
-            {sortedFormations.length === 0 ? (
-              <p className="no-keyframes">No keyframes yet. Click "+ Add" to create one.</p>
-            ) : (
-              sortedFormations.map((formation, index) => {
-                const formatTime = (seconds) => {
-                  const mins = Math.floor(seconds / 60);
-                  const secs = Math.floor(seconds % 60);
-                  return `${mins}:${secs.toString().padStart(2, '0')}`;
-                };
-                const isSelected = index === currentFormationIndex;
-                return (
-                  <div
-                    key={formation.id}
-                    className={`keyframe-item ${isSelected ? 'selected' : ''}`}
-                    onClick={() => {
-                      setIsPlaying(false);
-                      setCurrentFormationIndex(index);
-                      setCurrentTime(formation.time);
+
+          {sidebarTab === 'keyframes' && (
+            <>
+              <div className="sidebar-header">
+                <h3>Keyframes</h3>
+                <button className="add-formation-button" onClick={handleAddFormation}>
+                  + Add
+                </button>
+              </div>
+              <div className="keyframes-list">
+                {sortedFormations.length === 0 ? (
+                  <p className="no-keyframes">No keyframes yet. Click "+ Add" to create one.</p>
+                ) : (
+                  sortedFormations.map((formation, index) => {
+                    const formatTime = (seconds) => {
+                      const mins = Math.floor(seconds / 60);
+                      const secs = Math.floor(seconds % 60);
+                      return `${mins}:${secs.toString().padStart(2, '0')}`;
+                    };
+                    const isSelected = index === currentFormationIndex;
+                    return (
+                      <div
+                        key={formation.id}
+                        className={`keyframe-item ${isSelected ? 'selected' : ''}`}
+                        onClick={() => {
+                          setIsPlaying(false);
+                          setCurrentFormationIndex(index);
+                          setCurrentTime(formation.time);
+                        }}
+                      >
+                        <div className="keyframe-header">
+                          <span className="keyframe-number">F{index + 1}</span>
+                          <span className="keyframe-time">{formatTime(formation.time)}</span>
+                          {sortedFormations.length > 1 && (
+                            <button
+                              className="keyframe-delete"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (isSelected && index > 0) {
+                                  setCurrentFormationIndex(index - 1);
+                                } else if (isSelected && index === 0 && sortedFormations.length > 1) {
+                                  setCurrentFormationIndex(0);
+                                }
+                                removeFormation(formation.id);
+                              }}
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
+                        {isSelected && (
+                          <div className="keyframe-editing-indicator">
+                            <span>Editing this keyframe</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </>
+          )}
+
+          {sidebarTab === 'dancers' && (
+            <>
+              <div className="sidebar-header">
+                <h3>Dancers</h3>
+              </div>
+              <div className="dancers-list">
+                <div className="add-dancer-form">
+                  <input
+                    type="text"
+                    className="dancer-name-input"
+                    placeholder="Enter dancer name"
+                    value={newDancerName}
+                    onChange={(e) => setNewDancerName(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        handleAddDancer();
+                      }
                     }}
+                  />
+                  <button 
+                    className="add-dancer-button" 
+                    onClick={handleAddDancer}
+                    disabled={dancers.length >= 20}
                   >
-                    <div className="keyframe-header">
-                      <span className="keyframe-number">F{index + 1}</span>
-                      <span className="keyframe-time">{formatTime(formation.time)}</span>
-                      {sortedFormations.length > 1 && (
-                        <button
-                          className="keyframe-delete"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (isSelected && index > 0) {
-                              setCurrentFormationIndex(index - 1);
-                            } else if (isSelected && index === 0 && sortedFormations.length > 1) {
-                              setCurrentFormationIndex(0);
-                            }
-                            removeFormation(formation.id);
+                    + Add
+                  </button>
+                </div>
+                {dancers.length >= 20 && (
+                  <p className="dancer-limit-message">Maximum of 20 dancers reached.</p>
+                )}
+                {dancers.length === 0 ? (
+                  <p className="no-dancers">No dancers yet. Add one above.</p>
+                ) : (
+                  dancers.map((dancer) => (
+                    <div key={dancer.id} className="dancer-item">
+                      <div className="dancer-item-content">
+                        <div
+                          className="dancer-avatar-small"
+                          style={{
+                            backgroundColor: dancer.color,
+                            borderColor: dancer.borderColor,
+                            color: dancer.textColor,
                           }}
+                        >
+                          {editingInitials[dancer.id] !== undefined ? editingInitials[dancer.id] : dancer.initials}
+                        </div>
+                        <div className="dancer-info">
+                          <div className="dancer-name">{dancer.name}</div>
+                          <input
+                            type="text"
+                            className="dancer-initials-input"
+                            value={editingInitials[dancer.id] !== undefined ? editingInitials[dancer.id] : dancer.initials}
+                            onChange={(e) => handleInitialsChange(dancer.id, e.target.value)}
+                            onBlur={() => handleInitialsBlur(dancer.id)}
+                            onKeyPress={(e) => handleInitialsKeyPress(e, dancer.id)}
+                            maxLength={3}
+                            placeholder="Initials"
+                          />
+                        </div>
+                      </div>
+                      {dancers.length > 1 && (
+                        <button
+                          className="dancer-delete"
+                          onClick={() => handleRemoveDancer(dancer.id)}
                         >
                           ×
                         </button>
                       )}
                     </div>
-                    {isSelected && (
-                      <div className="keyframe-editing-indicator">
-                        <span>Editing this keyframe</span>
-                      </div>
-                    )}
-                  </div>
-                );
-              })
-            )}
-          </div>
+                  ))
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         <div className="stage-area">
