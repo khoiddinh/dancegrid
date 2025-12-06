@@ -14,7 +14,9 @@ const ChoreoHeadView = () => {
     updateDancerPosition,
     addDancer,
     removeDancer,
-    updateDancer
+    updateDancer,
+    messages,
+    deleteMessage
   } = useFormations();
   
   const [currentFormationIndex, setCurrentFormationIndex] = useState(0);
@@ -127,7 +129,10 @@ const ChoreoHeadView = () => {
 
   const handleAddFormation = () => {
     const newTime = currentTime;
-    addFormation(newTime);
+    const result = addFormation(newTime);
+    if (result === null) {
+      alert('Cannot add keyframe: Another keyframe already exists at this second.');
+    }
   };
 
   const handleRemoveFormation = () => {
@@ -443,6 +448,55 @@ const ChoreoHeadView = () => {
           onChange={(e) => currentFormation && handleNotesChange(currentFormation.id, e.target.value)}
           disabled={!currentFormation}
         />
+      </div>
+
+      <div className="messages-section">
+        <h3 className="messages-title">Messages from Dancers</h3>
+        {messages.length === 0 ? (
+          <p className="no-messages">No messages yet.</p>
+        ) : (
+          <div className="messages-list">
+            {messages.map((message) => {
+              const dancer = dancers.find(d => d.id === message.dancerId);
+              const messageDate = new Date(message.timestamp);
+              const timeString = messageDate.toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit',
+                hour12: true 
+              });
+              
+              return (
+                <div key={message.id} className="message-item">
+                  <div className="message-header">
+                    <div className="message-sender">
+                      <div
+                        className="message-avatar"
+                        style={{
+                          backgroundColor: dancer?.color || '#ccc',
+                          borderColor: dancer?.borderColor || '#999',
+                          color: dancer?.textColor || '#333',
+                        }}
+                      >
+                        {dancer?.initials || '??'}
+                      </div>
+                      <div className="message-sender-info">
+                        <div className="message-sender-name">{dancer?.name || 'Unknown'}</div>
+                        <div className="message-time">{timeString}</div>
+                      </div>
+                    </div>
+                    <button
+                      className="message-delete"
+                      onClick={() => deleteMessage(message.id)}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="message-content">{message.message}</div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

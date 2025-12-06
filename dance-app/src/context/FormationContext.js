@@ -81,10 +81,18 @@ export const FormationProvider = ({ children }) => {
     },
   ]);
 
+  const [messages, setMessages] = useState([]);
+
   const addFormation = (time) => {
     const newId = Math.max(...formations.map(f => f.id), 0) + 1;
     const lastFormation = formations[formations.length - 1];
     const formationTime = time !== undefined && time !== null ? time : (formations.length * 60);
+    const formationSecond = Math.floor(formationTime);
+    
+    const hasConflict = formations.some(f => Math.floor(f.time) === formationSecond);
+    if (hasConflict) {
+      return null;
+    }
     
     const defaultPositions = {};
     dancers.forEach(dancer => {
@@ -109,9 +117,17 @@ export const FormationProvider = ({ children }) => {
   };
 
   const updateFormation = (id, updates) => {
+    if (updates.time !== undefined) {
+      const newTimeSecond = Math.floor(updates.time);
+      const hasConflict = formations.some(f => f.id !== id && Math.floor(f.time) === newTimeSecond);
+      if (hasConflict) {
+        return false;
+      }
+    }
     setFormations(formations.map(f => 
       f.id === id ? { ...f, ...updates } : f
     ));
+    return true;
   };
 
   const updateDancerPosition = (formationId, dancerId, position) => {
@@ -182,6 +198,32 @@ export const FormationProvider = ({ children }) => {
     }));
   };
 
+  const addMessage = (dancerId, messageText) => {
+    const trimmedMessage = messageText.trim();
+    if (!trimmedMessage) return null;
+    
+    const newMessage = {
+      id: Date.now(),
+      dancerId: dancerId,
+      message: trimmedMessage,
+      timestamp: new Date().toISOString(),
+      read: false
+    };
+    
+    setMessages([...messages, newMessage]);
+    return newMessage;
+  };
+
+  const markMessageAsRead = (messageId) => {
+    setMessages(messages.map(m => 
+      m.id === messageId ? { ...m, read: true } : m
+    ));
+  };
+
+  const deleteMessage = (messageId) => {
+    setMessages(messages.filter(m => m.id !== messageId));
+  };
+
   const value = {
     dancers,
     formations,
@@ -193,6 +235,10 @@ export const FormationProvider = ({ children }) => {
     addDancer,
     removeDancer,
     updateDancer,
+    messages,
+    addMessage,
+    markMessageAsRead,
+    deleteMessage,
   };
 
   return (

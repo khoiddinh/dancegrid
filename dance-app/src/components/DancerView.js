@@ -5,7 +5,7 @@ import { useFormations } from '../context/FormationContext';
 import './DancerView.css';
 
 const DancerView = ({ dancerId = 'KV' }) => {
-  const { dancers, formations } = useFormations();
+  const { dancers, formations, addMessage } = useFormations();
   const [message, setMessage] = useState('');
   const [currentTime, setCurrentTime] = useState(8);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -71,9 +71,8 @@ const DancerView = ({ dancerId = 'KV' }) => {
 
   const handleSendMessage = () => {
     if (message.trim()) {
-      console.log('Sending message:', message);
+      addMessage(dancerId, message);
       setMessage('');
-      alert('Message sent to Choreo Head!');
     }
   };
 
